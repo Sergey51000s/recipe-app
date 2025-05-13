@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Техкарты блюд</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: Arial, sans-serif;
+      overflow: hidden;
+    }
+
+    .container {
+      height: 100vh;
+      background-image: url('background.jpg');
+      background-size: cover;
+      background-position: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 30px;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    button {
+      width: 160%;
+      max-width: 600px;
+      padding: 30px;
+      font-size: 36px;
+      font-weight: bold;
+      color: white;
+      background-color: #8B4513;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #A0522D;
+    }
+
+    @media (max-width: 600px) {
+      button {
+        font-size: 32px;
+        padding: 24px;
+      }
+    }
+
+    #dishes {
+      color: white;
+      font-size: 24px;
+      text-align: center;
+      margin-top: 20px;
+    }
+  </style>
+  <script>
+    async function loadDishes(category) {
+      try {
+        const response = await fetch(`/${category}`);
+        const data = await response.json();
+        const dishesDiv = document.getElementById('dishes');
+        dishesDiv.innerHTML = data.map(dish => `<p>${dish.name}: ${dish.ingredients.join(', ')}</p>`).join('');
+      } catch (error) {
+        document.getElementById('dishes').innerHTML = 'Ошибка загрузки данных';
+        console.error(error);
+      }
+    }
+  </script>
+</head>
+<body>
+  <div class="container">
+    <button onclick="loadDishes('salad')">Салат</button>
+    <button onclick="loadDishes('soup')">Суп</button>
+    <button onclick="loadDishes('pasta')">Паста</button>
+    <button onclick="loadDishes('main')">Горячее</button>
+    <div id="dishes"></div>
+  </div>
+</body>
+</html>
