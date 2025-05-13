@@ -70,6 +70,13 @@
     th {
       background-color: #f8f9fa;
     }
+    ul.process-list {
+      list-style-type: decimal;
+      padding-left: 20px;
+    }
+    ul.process-list li {
+      margin-bottom: 5px;
+    }
     @media (max-width: 768px) {
       .category-btn {
         font-size: 1rem;
@@ -96,7 +103,7 @@
 </head>
 <body>
   <div class="container mt-5">
-    <h1 class="text-center mb-4" style="color: white; text-shadow: 2px 2px 4px #000;">Выбор категории</h1>
+    <h1 id="main-title" class="text-center mb-4" style="color: white; text-shadow: 2px 2px 4px #000;">Выбор категории</h1>
     <div id="category-buttons" class="text-center mb-4">
       <button class="category-btn" data-category="Салаты">Салаты</button>
       <button class="category-btn" data-category="Супы">Супы</button>
@@ -117,8 +124,6 @@
         <div id="dish-recipe"></div>
         <h3>Технологический процесс</h3>
         <div id="dish-process" class="scrollable-section"></div>
-        <h3>Органолептические показатели</h3>
-        <div id="dish-organoleptic" class="scrollable-section"></div>
         <button class="btn btn-secondary mt-3" onclick="goBack()">Назад</button>
       </div>
     </div>
@@ -133,7 +138,7 @@
     const dishTitle = document.getElementById('dish-title');
     const dishRecipe = document.getElementById('dish-recipe');
     const dishProcess = document.getElementById('dish-process');
-    const dishOrganoleptic = document.getElementById('dish-organoleptic');
+    const mainTitle = document.getElementById('main-title');
 
     categoryButtons.forEach(button => {
       button.addEventListener('click', () => {
@@ -149,6 +154,7 @@
               li.addEventListener('click', () => showDishDetails(category, dish));
               dishItems.appendChild(li);
             }
+            mainTitle.style.display = 'block';
             document.getElementById('category-buttons').style.display = 'none';
             dishList.style.display = 'block';
           })
@@ -161,28 +167,50 @@
         .then(response => response.json())
         .then(data => {
           dishTitle.textContent = dish;
+
           // Преобразуем рецептуру в таблицу
           const recipeLines = data.recipe.trim().split('\n');
           let tableHtml = '<table><tr><th>Ингредиент</th><th>Брутто (г)</th><th>Нетто (г)</th></tr>';
-          let inHeader = true;
+          let inTableBody = false;
           for (let line of recipeLines) {
             line = line.trim();
-            if (line.startsWith('**')) continue;
-            if (line === '') {
-              inHeader = false;
+            if (line === '') continue;
+            if (line.includes('---')) {
+              inTableBody = true;
               continue;
             }
-            if (!inHeader) {
-              const [ingredient, brutto, netto] = line.split('|').map(item => item.trim().replace(/^\d+\s+/, ''));
-              if (ingredient && brutto && netto) {
+            if (line.startsWith('**Выход')) {
+              break;
+            }
+            if (inTableBody) {
+              const cols = line.split('|').map(item => item.trim());
+              if (cols.length >= 3) {
+                const ingredient = cols[0];
+                const brutto = cols[1];
+                const netto = cols[2];
                 tableHtml += `<tr><td>${ingredient}</td><td>${brutto}</td><td>${netto}</td></tr>`;
               }
             }
           }
           tableHtml += '</table>';
           dishRecipe.innerHTML = tableHtml;
-          dishProcess.textContent = data.process;
-          dishOrganoleptic.textContent = data.organoleptic;
+
+          // Преобразуем технологический процесс в список
+          const processText = data.process.trim();
+          const processSections = processText.split(/\*\*[^:]+:\s*/).filter(section => section.trim());
+          let processHtml = '<ul class="process-list">';
+          processSections.forEach(section => {
+            const steps = section.split('\n').filter(step => step.trim());
+            steps.forEach(step => {
+              if (step.trim()) {
+                processHtml += `<li>${step.trim()}</li>`;
+              }
+            });
+          });
+          processHtml += '</ul>';
+          dishProcess.innerHTML = processHtml;
+
+          mainTitle.style.display = 'none';
           dishList.style.display = 'none';
           dishDetails.style.display = 'block';
         })
@@ -191,6 +219,7 @@
 
     function goBack() {
       dishDetails.style.display = 'none';
+      mainTitle.style.display = 'block';
       document.getElementById('category-buttons').style.display = 'block';
     }
   </script>
