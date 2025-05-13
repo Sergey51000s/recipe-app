@@ -42,16 +42,54 @@
     .dish-item:hover {
       background-color: #e9ecef;
     }
+    .card {
+      max-height: 80vh;
+      overflow-y: auto;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+    }
+    .scrollable-section {
+      max-height: 150px;
+      overflow-y: auto;
+      border: 1px solid #eee;
+      padding: 10px;
+      margin-bottom: 10px;
+      background-color: #fff;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 10px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #f8f9fa;
+    }
     @media (max-width: 768px) {
       .category-btn {
         font-size: 1rem;
         padding: 8px 15px;
       }
-      .dish-details h2 {
+      .card {
+        max-height: 90vh;
+      }
+      .scrollable-section {
+        max-height: 120px;
+        font-size: 0.9rem;
+      }
+      table {
+        font-size: 0.9rem;
+      }
+      h2 {
         font-size: 1.5rem;
       }
-      .dish-details p {
-        font-size: 0.9rem;
+      h3 {
+        font-size: 1.2rem;
       }
     }
   </style>
@@ -73,14 +111,16 @@
     </div>
 
     <div id="dish-details" class="dish-details">
-      <h2 id="dish-title"></h2>
-      <h3>Рецептура</h3>
-      <div id="dish-recipe"></div>
-      <h3>Технологический процесс</h3>
-      <div id="dish-process"></div>
-      <h3>Органолептические показатели</h3>
-      <div id="dish-organoleptic"></div>
-      <button class="btn btn-secondary mt-3" onclick="goBack()">Назад</button>
+      <div class="card">
+        <h2 id="dish-title" class="text-center"></h2>
+        <h3>Рецептура</h3>
+        <div id="dish-recipe"></div>
+        <h3>Технологический процесс</h3>
+        <div id="dish-process" class="scrollable-section"></div>
+        <h3>Органолептические показатели</h3>
+        <div id="dish-organoleptic" class="scrollable-section"></div>
+        <button class="btn btn-secondary mt-3" onclick="goBack()">Назад</button>
+      </div>
     </div>
   </div>
 
@@ -121,9 +161,28 @@
         .then(response => response.json())
         .then(data => {
           dishTitle.textContent = dish;
-          dishRecipe.innerHTML = `<pre>${data.recipe}</pre>`;
-          dishProcess.innerHTML = `<pre>${data.process}</pre>`;
-          dishOrganoleptic.innerHTML = `<pre>${data.organoleptic}</pre>`;
+          // Преобразуем рецептуру в таблицу
+          const recipeLines = data.recipe.trim().split('\n');
+          let tableHtml = '<table><tr><th>Ингредиент</th><th>Брутто (г)</th><th>Нетто (г)</th></tr>';
+          let inHeader = true;
+          for (let line of recipeLines) {
+            line = line.trim();
+            if (line.startsWith('**')) continue;
+            if (line === '') {
+              inHeader = false;
+              continue;
+            }
+            if (!inHeader) {
+              const [ingredient, brutto, netto] = line.split('|').map(item => item.trim().replace(/^\d+\s+/, ''));
+              if (ingredient && brutto && netto) {
+                tableHtml += `<tr><td>${ingredient}</td><td>${brutto}</td><td>${netto}</td></tr>`;
+              }
+            }
+          }
+          tableHtml += '</table>';
+          dishRecipe.innerHTML = tableHtml;
+          dishProcess.textContent = data.process;
+          dishOrganoleptic.textContent = data.organoleptic;
           dishList.style.display = 'none';
           dishDetails.style.display = 'block';
         })
