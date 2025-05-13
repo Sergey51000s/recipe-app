@@ -3,81 +3,136 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Рецепты</title>
+  <title>Выбор Категорий</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      margin: 0;
-      padding: 0;
-      background: url('background.jpg') no-repeat center center fixed;
+      background: url('https://via.placeholder.com/1200x800?text=Background+Image') no-repeat center center fixed;
       background-size: cover;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
+      color: #333;
+      font-family: Arial, sans-serif;
     }
-    h1 {
-      color: #fff;
-      text-shadow: 2px 2px 4px #000;
-    }
-    .buttons {
-      margin-top: 20px;
-    }
-    button {
-      padding: 10px 20px;
+    .category-btn {
       margin: 5px;
-      font-size: 16px;
-      cursor: pointer;
-      background-color: #4CAF50;
+      padding: 10px 20px;
+      font-size: 1.2rem;
+      background-color: #28a745;
       color: white;
       border: none;
       border-radius: 5px;
-      transition: background-color 0.3s;
+      transition: all 0.3s;
     }
-    button:hover {
-      background-color: #45a049;
+    .category-btn:hover {
+      background-color: #218838;
     }
-    #dishList {
+    .dish-list, .dish-details {
+      display: none;
+      padding: 20px;
+      background-color: rgba(255, 255, 255, 0.9);
+      border-radius: 10px;
       margin-top: 20px;
-      color: #fff;
-      text-shadow: 1px 1px 3px #000;
+    }
+    .dish-item {
+      cursor: pointer;
+      padding: 10px;
+      margin: 5px 0;
+      background-color: #f8f9fa;
+      border-radius: 5px;
+    }
+    .dish-item:hover {
+      background-color: #e9ecef;
+    }
+    @media (max-width: 768px) {
+      .category-btn {
+        font-size: 1rem;
+        padding: 8px 15px;
+      }
+      .dish-details h2 {
+        font-size: 1.5rem;
+      }
+      .dish-details p {
+        font-size: 0.9rem;
+      }
     }
   </style>
 </head>
 <body>
-  <h1>Выбери категорию</h1>
-  <div class="buttons">
-    <button onclick="loadDishes('Салаты')">Салаты</button>
-    <button onclick="loadDishes('Супы')">Супы</button>
-    <button onclick="loadDishes('Паста')">Паста</button>
-    <button onclick="loadDishes('Горячее')">Горячее</button>
-    <button onclick="loadDishes('Закуски')">Закуски</button>
-  </div>
-  <div id="dishList"></div>
+  <div class="container mt-5">
+    <h1 class="text-center mb-4" style="color: white; text-shadow: 2px 2px 4px #000;">Выбор категории</h1>
+    <div id="category-buttons" class="text-center mb-4">
+      <button class="category-btn" data-category="Салаты">Салаты</button>
+      <button class="category-btn" data-category="Супы">Супы</button>
+      <button class="category-btn" data-category="Горячее">Горячее</button>
+      <button class="category-btn" data-category="Паста">Паста</button>
+      <button class="category-btn" data-category="Закуски">Закуски</button>
+    </div>
 
+    <div id="dish-list" class="dish-list">
+      <h2 class="text-center">Выберите блюдо</h2>
+      <ul id="dish-items" class="list-unstyled"></ul>
+    </div>
+
+    <div id="dish-details" class="dish-details">
+      <h2 id="dish-title"></h2>
+      <h3>Рецептура</h3>
+      <div id="dish-recipe"></div>
+      <h3>Технологический процесс</h3>
+      <div id="dish-process"></div>
+      <h3>Органолептические показатели</h3>
+      <div id="dish-organoleptic"></div>
+      <button class="btn btn-secondary mt-3" onclick="goBack()">Назад</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    async function loadDishes(category) {
-      console.log('Нажата кнопка:', category); // Логирование нажатия
-      try {
-        const response = await fetch(`/api/dishes/${category}`);
-        console.log('Ответ сервера:', response); // Логирование ответа
-        const data = await response.json();
-        console.log('Данные:', data); // Логирование данных
-        if (data.error) {
-          document.getElementById('dishList').innerHTML = `<p style="color: red;">Ошибка: ${data.error}</p>`;
-          return;
-        }
-        let html = `<h2>${category}</h2>`;
-        for (let dish in data) {
-          html += `<p><strong>${dish}</strong>: ${data[dish].ingredients}</p>`;
-        }
-        document.getElementById('dishList').innerHTML = html;
-      } catch (error) {
-        console.error('Ошибка при загрузке данных:', error); // Логирование ошибок
-        document.getElementById('dishList').innerHTML = `<p style="color: red;">Ошибка при загрузке: ${error.message}</p>`;
-      }
+    const categoryButtons = document.querySelectorAll('.category-btn');
+    const dishList = document.getElementById('dish-list');
+    const dishDetails = document.getElementById('dish-details');
+    const dishItems = document.getElementById('dish-items');
+    const dishTitle = document.getElementById('dish-title');
+    const dishRecipe = document.getElementById('dish-recipe');
+    const dishProcess = document.getElementById('dish-process');
+    const dishOrganoleptic = document.getElementById('dish-organoleptic');
+
+    categoryButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const category = button.getAttribute('data-category');
+        fetch(`/api/dishes/${category}`)
+          .then(response => response.json())
+          .then(data => {
+            dishItems.innerHTML = '';
+            for (const dish in data) {
+              const li = document.createElement('li');
+              li.className = 'dish-item';
+              li.textContent = dish;
+              li.addEventListener('click', () => showDishDetails(category, dish));
+              dishItems.appendChild(li);
+            }
+            document.getElementById('category-buttons').style.display = 'none';
+            dishList.style.display = 'block';
+          })
+          .catch(error => console.error('Ошибка:', error));
+      });
+    });
+
+    function showDishDetails(category, dish) {
+      fetch(`/api/dishes/${category}/${dish}`)
+        .then(response => response.json())
+        .then(data => {
+          dishTitle.textContent = dish;
+          dishRecipe.innerHTML = `<pre>${data.recipe}</pre>`;
+          dishProcess.innerHTML = `<pre>${data.process}</pre>`;
+          dishOrganoleptic.innerHTML = `<pre>${data.organoleptic}</pre>`;
+          dishList.style.display = 'none';
+          dishDetails.style.display = 'block';
+        })
+        .catch(error => console.error('Ошибка:', error));
+    }
+
+    function goBack() {
+      dishDetails.style.display = 'none';
+      document.getElementById('category-buttons').style.display = 'block';
     }
   </script>
 </body>
