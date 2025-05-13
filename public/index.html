@@ -185,17 +185,14 @@
           tableHtml += '</table>';
           dishRecipe.innerHTML = tableHtml;
 
-          // Преобразуем технологический процесс в список
+          // Преобразуем технологический процесс в простой список
           const processText = data.process.trim();
-          const processSections = processText.split(/\*\*[^:]+:\s*/).filter(section => section.trim());
+          const processSteps = processText.split('\n').filter(step => step.trim() && !step.startsWith('**'));
           let processHtml = '<ul class="process-list">';
-          processSections.forEach(section => {
-            const steps = section.split('\n').filter(step => step.trim());
-            steps.forEach(step => {
-              if (step.trim()) {
-                processHtml += `<li>${step.trim()}</li>`;
-              }
-            });
+          processSteps.forEach(step => {
+            if (step.trim()) {
+              processHtml += `<li>${step.trim()}</li>`;
+            }
           });
           processHtml += '</ul>';
           dishProcess.innerHTML = processHtml;
