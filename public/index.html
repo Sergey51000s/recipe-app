@@ -43,19 +43,9 @@
       background-color: #e9ecef;
     }
     .card {
-      max-height: 80vh;
-      overflow-y: auto;
       padding: 15px;
       border: 1px solid #ddd;
       border-radius: 10px;
-    }
-    .scrollable-section {
-      max-height: 150px;
-      overflow-y: auto;
-      border: 1px solid #eee;
-      padding: 10px;
-      margin-bottom: 10px;
-      background-color: #fff;
     }
     table {
       width: 100%;
@@ -70,24 +60,18 @@
     th {
       background-color: #f8f9fa;
     }
-    ul.process-list {
+    ul.process-list, ul.organoleptic-list {
       list-style-type: decimal;
       padding-left: 20px;
+      margin-bottom: 10px;
     }
-    ul.process-list li {
+    ul.process-list li, ul.organoleptic-list li {
       margin-bottom: 5px;
     }
     @media (max-width: 768px) {
       .category-btn {
         font-size: 1rem;
         padding: 8px 15px;
-      }
-      .card {
-        max-height: 90vh;
-      }
-      .scrollable-section {
-        max-height: 120px;
-        font-size: 0.9rem;
       }
       table {
         font-size: 0.9rem;
@@ -97,6 +81,9 @@
       }
       h3 {
         font-size: 1.2rem;
+      }
+      ul.process-list, ul.organoleptic-list {
+        font-size: 0.9rem;
       }
     }
   </style>
@@ -123,7 +110,9 @@
         <h3>Рецептура</h3>
         <div id="dish-recipe"></div>
         <h3>Технологический процесс</h3>
-        <div id="dish-process" class="scrollable-section"></div>
+        <div id="dish-process"></div>
+        <h3>Органолептические показатели</h3>
+        <div id="dish-organoleptic"></div>
         <button class="btn btn-secondary mt-3" onclick="goBack()">Назад</button>
       </div>
     </div>
@@ -138,6 +127,7 @@
     const dishTitle = document.getElementById('dish-title');
     const dishRecipe = document.getElementById('dish-recipe');
     const dishProcess = document.getElementById('dish-process');
+    const dishOrganoleptic = document.getElementById('dish-organoleptic');
     const mainTitle = document.getElementById('main-title');
 
     categoryButtons.forEach(button => {
@@ -209,6 +199,18 @@
           });
           processHtml += '</ul>';
           dishProcess.innerHTML = processHtml;
+
+          // Преобразуем органолептические показатели в список
+          const organolepticText = data.organoleptic.trim();
+          const organolepticItems = organolepticText.split('\n').filter(item => item.trim());
+          let organolepticHtml = '<ul class="organoleptic-list">';
+          organolepticItems.forEach(item => {
+            if (item.trim()) {
+              organolepticHtml += `<li>${item.trim()}</li>`;
+            }
+          });
+          organolepticHtml += '</ul>';
+          dishOrganoleptic.innerHTML = organolepticHtml;
 
           mainTitle.style.display = 'none';
           dishList.style.display = 'none';
