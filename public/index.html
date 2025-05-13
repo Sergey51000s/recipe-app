@@ -3,83 +3,74 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Техкарты блюд</title>
+  <title>Рецепты</title>
   <style>
-    body, html {
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
       margin: 0;
       padding: 0;
-      height: 100%;
-      font-family: Arial, sans-serif;
-      overflow: hidden;
-    }
-
-    .container {
-      height: 100vh;
-      background-image: url('background.jpg');
+      background: url('background.jpg') no-repeat center center fixed;
       background-size: cover;
-      background-position: center;
+      height: 100vh;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      gap: 30px;
-      padding: 20px;
-      box-sizing: border-box;
     }
-
-    button {
-      width: 160%;
-      max-width: 600px;
-      padding: 30px;
-      font-size: 36px;
-      font-weight: bold;
-      color: white;
-      background-color: #8B4513;
-      border: none;
-      border-radius: 20px;
-      cursor: pointer;
-      transition: background-color 0.3s;
+    h1 {
+      color: #fff;
+      text-shadow: 2px 2px 4px #000;
     }
-
-    button:hover {
-      background-color: #A0522D;
-    }
-
-    @media (max-width: 600px) {
-      button {
-        font-size: 32px;
-        padding: 24px;
-      }
-    }
-
-    #dishes {
-      color: white;
-      font-size: 24px;
-      text-align: center;
+    .buttons {
       margin-top: 20px;
     }
-  </style>
-  <script>
-    async function loadDishes(category) {
-      try {
-        const response = await fetch(`/${category}`);
-        const data = await response.json();
-        const dishesDiv = document.getElementById('dishes');
-        dishesDiv.innerHTML = data.map(dish => `<p>${dish.name}: ${dish.ingredients.join(', ')}</p>`).join('');
-      } catch (error) {
-        document.getElementById('dishes').innerHTML = 'Ошибка загрузки данных';
-        console.error(error);
-      }
+    button {
+      padding: 10px 20px;
+      margin: 5px;
+      font-size: 16px;
+      cursor: pointer;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      transition: background-color 0.3s;
     }
-  </script>
+    button:hover {
+      background-color: #45a049;
+    }
+    #dishList {
+      margin-top: 20px;
+      color: #fff;
+      text-shadow: 1px 1px 3px #000;
+    }
+  </style>
 </head>
 <body>
-  <div class="container">
-    <button onclick="loadDishes('salad')">Салат</button>
-    <button onclick="loadDishes('soup')">Суп</button>
-    <button onclick="loadDishes('pasta')">Паста</button>
-    <button onclick="loadDishes('main')">Горячее</button>
-    <div id="dishes"></div>
+  <h1>Выбери категорию</h1>
+  <div class="buttons">
+    <button onclick="loadDishes('Салаты')">Салаты</button>
+    <button onclick="loadDishes('Супы')">Супы</button>
+    <button onclick="loadDishes('Паста')">Паста</button>
+    <button onclick="loadDishes('Горячее')">Горячее</button>
+    <button onclick="loadDishes('Закуски')">Закуски</button>
   </div>
+  <div id="dishList"></div>
+
+  <script>
+    async function loadDishes(category) {
+      const response = await fetch(`/api/dishes/${category}`);
+      const data = await response.json();
+      if (data.error) {
+        document.getElementById('dishList').innerHTML = data.error;
+        return;
+      }
+      let html = `<h2>${category}</h2>`;
+      for (let dish in data) {
+        html += `<p><strong>${dish}</strong>: ${data[dish].ingredients}</p>`;
+      }
+      document.getElementById('dishList').innerHTML = html;
+    }
+  </script>
 </body>
 </html>
