@@ -59,17 +59,25 @@
 
   <script>
     async function loadDishes(category) {
-      const response = await fetch(`/api/dishes/${category}`);
-      const data = await response.json();
-      if (data.error) {
-        document.getElementById('dishList').innerHTML = data.error;
-        return;
+      console.log('Нажата кнопка:', category); // Логирование нажатия
+      try {
+        const response = await fetch(`/api/dishes/${category}`);
+        console.log('Ответ сервера:', response); // Логирование ответа
+        const data = await response.json();
+        console.log('Данные:', data); // Логирование данных
+        if (data.error) {
+          document.getElementById('dishList').innerHTML = `<p style="color: red;">Ошибка: ${data.error}</p>`;
+          return;
+        }
+        let html = `<h2>${category}</h2>`;
+        for (let dish in data) {
+          html += `<p><strong>${dish}</strong>: ${data[dish].ingredients}</p>`;
+        }
+        document.getElementById('dishList').innerHTML = html;
+      } catch (error) {
+        console.error('Ошибка при загрузке данных:', error); // Логирование ошибок
+        document.getElementById('dishList').innerHTML = `<p style="color: red;">Ошибка при загрузке: ${error.message}</p>`;
       }
-      let html = `<h2>${category}</h2>`;
-      for (let dish in data) {
-        html += `<p><strong>${dish}</strong>: ${data[dish].ingredients}</p>`;
-      }
-      document.getElementById('dishList').innerHTML = html;
     }
   </script>
 </body>
